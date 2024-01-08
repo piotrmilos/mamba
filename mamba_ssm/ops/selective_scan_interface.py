@@ -74,12 +74,13 @@ class SelectiveScanFn(torch.autograd.Function):
                 None)
 
 
-def selective_scan_fn(u, delta, A, B, C, D=None, z=None, delta_bias=None, delta_softplus=False,
+def selective_scan_fun(u, delta, A, B, C, D=None, z=None, delta_bias=None, delta_softplus=False,
                      return_last_state=False):
     """if return_last_state is True, returns (out, last_state)
     last_state has shape (batch, dim, dstate). Note that the gradient of the last state is
     not considered in the backward pass.
     """
+    raise Exception('HACK. This should not happen. ')
     return SelectiveScanFn.apply(u, delta, A, B, C, D, z, delta_bias, delta_softplus, return_last_state)
 
 
@@ -297,12 +298,13 @@ class MambaInnerFn(torch.autograd.Function):
                 dB_proj_bias, dC_proj_bias, None)
 
 
-def mamba_inner_fn(
+def mamba_inner_fun(
     xz, conv1d_weight, conv1d_bias, x_proj_weight, delta_proj_weight,
     out_proj_weight, out_proj_bias,
     A, B=None, C=None, D=None, delta_bias=None, B_proj_bias=None,
     C_proj_bias=None, delta_softplus=True
 ):
+    raise Exception("This should not happen")
     return MambaInnerFn.apply(xz, conv1d_weight, conv1d_bias, x_proj_weight, delta_proj_weight,
                               out_proj_weight, out_proj_bias,
                               A, B, C, D, delta_bias, B_proj_bias, C_proj_bias, delta_softplus)
@@ -341,5 +343,5 @@ def mamba_inner_ref(
             C = rearrange(C, "(b l) dstate -> b dstate l", l=L).contiguous()
         else:
             C = rearrange(C, "(b l) (dstate two) -> b dstate (l two)", l=L, two=2).contiguous()
-    y = selective_scan_fn(x, delta, A, B, C, D, z=z, delta_bias=delta_bias, delta_softplus=True)
+    y = selective_scan_ref(x, delta, A, B, C, D, z=z, delta_bias=delta_bias, delta_softplus=True)
     return F.linear(rearrange(y, "b d l -> b l d"), out_proj_weight, out_proj_bias)
